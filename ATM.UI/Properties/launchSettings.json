@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "ATM.UI": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}

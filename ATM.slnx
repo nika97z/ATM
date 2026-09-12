@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/ATM/">
+    <Project Path="ATM.Core/ATM.Core.csproj" Id="a266e573-7cbb-4830-9697-96e2c6b5010d" />
+    <Project Path="ATM.Infrastructure/ATM.Infrastructure.csproj" Id="035e74d1-4a5c-4ce9-84a3-6266b611a803" />
+    <Project Path="ATM.Services/ATM.Services.csproj" Id="cd29443b-d5ba-4aaf-ac2c-50fcc8f57e09" />
+    <Project Path="ATM.UI/ATM.UI.csproj" Id="27a2b3a8-3978-46e9-a7cf-cd40dd1bf136" />
+  </Folder>
+</Solution>
