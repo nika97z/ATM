@@ -1,4 +1,0 @@
-{"Accounts":[{"AccountNumber":13629,"Balance":778},{"AccountNumber":13311,"Balance":44}],"Loan":{"Amount":0,"RequestedAmount":0,"Time":0,"Status":3},"Salary":100,"id":1,"name":"zz","Password":"$2a$11$/PHssW.rcFiPI5jPCwBT2.YEvRh76tHlv/6LfVr7lNuT325Qbu0Se","Role":1}
-{"Accounts":[{"AccountNumber":12802,"Balance":22},{"AccountNumber":16756,"Balance":100}],"Loan":{"Amount":0,"RequestedAmount":0,"Time":0,"Status":3},"Salary":1000,"id":2,"name":"aa","Password":"$2a$11$4yHCk4S49l/.3uyr6/B.luWmkGBAgToJ1w24kpW/IoUYOwBZs.0Xm","Role":1}
-{"Accounts":[{"AccountNumber":11297,"Balance":936},{"AccountNumber":18140,"Balance":198}],"Loan":{"Amount":0,"RequestedAmount":200,"Time":20,"Status":0},"Salary":1000,"id":3,"name":"ss","Password":"$2a$11$OZUhu7LWhbLW3oJx5qkzMOSTmNcrax6MP3gd0kQQCreZ7m0Qg6LQK","Role":1}
-{"id":1,"name":"zz","Password":"$2a$11$WIw1gMbkWHe7dIcJDHS47OnFVwoSPzVxZu9.adlXzDt6GMeogufD.","Role":0}
