@@ -23,7 +23,6 @@ namespace ATM.Core.Models
         public decimal RequestedAmount { get; set; } = 0m;
         public int Time { get; set; } = 0;
         public LoanStatus Status { get; set; } = LoanStatus.DidnotRequested;
-        // The account the loan is paid into; empty when no loan was requested.
         [JsonConverter(typeof(AccountNumberJsonConverter))]
         public string Account { get; set; } = string.Empty;
     }
