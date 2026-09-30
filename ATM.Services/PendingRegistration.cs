@@ -2,7 +2,6 @@ using ATM.Core.Models;
 
 namespace ATM.Services
 {
-    // A client registration that is waiting for the emailed verification code.
     public class PendingRegistration
     {
         internal PendingRegistration(ClientUser clientUser, string code, DateTime expiresAt, int attemptsLeft)
