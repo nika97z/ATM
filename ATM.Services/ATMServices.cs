@@ -36,7 +36,6 @@ namespace ATM.Services
         }
         public static bool IsValidEmail(string email)
         {
-            // Reject display-name forms like "Nika <nika@gmail.com>"; only a bare address is accepted.
             return MailAddress.TryCreate(email, out var address) && address.Address == email;
         }
 
@@ -75,8 +74,6 @@ namespace ATM.Services
             return accountNumber;
         }
 
-        // Builds the new client and emails a verification code. Nothing is saved until
-        // CompleteUserRegistration accepts the code.
         public PendingRegistration StartUserRegistration(string name, string password, decimal salary, string email)
         {
             if (!IsValidName(name))
@@ -133,8 +130,7 @@ namespace ATM.Services
             return new PendingRegistration(clientUser, code, expiresAt, VerificationCodeAttempts);
         }
 
-        // Returns true and saves the client when the code is correct, or false when it is wrong
-        // but attempts remain. Throws once the code has expired or the last attempt is used up.
+
         public bool CompleteUserRegistration(PendingRegistration registration, string enteredCode)
         {
             if (DateTime.Now > registration.ExpiresAt)
@@ -156,7 +152,7 @@ namespace ATM.Services
             _repository.Log($"User {clientUser.name} registered at {DateTime.Now} from IP: {IpService.GetIpAddress()}");
             return true;
         }
-        // Returns the new admin, so the caller can log them in straight away.
+
         public AdminUser RegisterAdminUser(string name, string password)
         {
             if (!IsValidName(name))
@@ -219,7 +215,6 @@ namespace ATM.Services
             {
                 throw new DeleteAccountExtension("Cannot delete an account that still has money in it. Withdraw or transfer the money first.");
             }
-            // Approving the loan would otherwise fail because the money has nowhere to go.
             if (clientUser.Loan.Status == LoanStatus.Pending && clientUser.Loan.Account == accountNumber)
             {
                 throw new DeleteAccountExtension("This account is waiting to receive a loan, so it cannot be deleted.");
@@ -310,7 +305,6 @@ namespace ATM.Services
                 throw new InvalidOperationException("One or both accounts not found.");
             }
         }
-        // Returns why the client cannot request a loan right now, or null when they can.
         public static string? LoanRequestBlockedReason(ClientUser clientUser)
         {
             if (clientUser.Loan.Status == LoanStatus.DidnotRequested)
@@ -327,7 +321,6 @@ namespace ATM.Services
             }
             return null;
         }
-        // A new request replaces the previous (approved or rejected) loan on the client.
         public void RequestLoan(ClientUser clientUser, decimal amount, int time, string account)
         {
             string? blockedReason = LoanRequestBlockedReason(clientUser);
@@ -374,7 +367,6 @@ namespace ATM.Services
                 throw new AuthenticationException("Invalid password.");
             }
             string ipAddress = IpService.GetIpAddress();
-            // Checked after the password, so only the account owner learns that it is banned.
             if (clientUser.IsBanned)
             {
                 _repository.Log($"Banned user {clientUser.name} tried to log in at {DateTime.Now} from IP: {ipAddress}");
@@ -427,7 +419,6 @@ namespace ATM.Services
         {
             return _repository.GetAllClientUsers().Where(u => u.Loan.Status == LoanStatus.Rejected).ToList();
         }
-        // Returns a message saying whether the client was notified by email.
         public string ApproveLoan(ClientUser clientUser)
         {
             clientUser.Loan.Status = LoanStatus.Approved;
@@ -444,7 +435,6 @@ namespace ATM.Services
                 throw new InvalidOperationException("Account not found.");
             }
         }
-        // Returns a message saying whether the client was notified by email.
         public string RejectLoan(ClientUser clientUser)
         {
             clientUser.Loan.Status = LoanStatus.Rejected;
@@ -452,7 +442,6 @@ namespace ATM.Services
             _repository.Log($"Loan rejected for user {clientUser.name} at {DateTime.Now} from IP: {IpService.GetIpAddress()}");
             return NotifyByEmail(clientUser, $"Loan {clientUser.Loan.Status}", () => _emailService.SendLoanStatusNotification(clientUser));
         }
-        // Returns a message saying whether the client was notified by email.
         public string BanClientUser(ClientUser clientUser)
         {
             clientUser.IsBanned = true;
@@ -460,7 +449,6 @@ namespace ATM.Services
             _repository.Log($"User {clientUser.name} was banned at {DateTime.Now} from IP: {IpService.GetIpAddress()}");
             return NotifyByEmail(clientUser, "Ban", () => _emailService.SendBanStatusNotification(clientUser));
         }
-        // Returns a message saying whether the client was notified by email.
         public string UnbanClientUser(ClientUser clientUser)
         {
             clientUser.IsBanned = false;
@@ -474,7 +462,6 @@ namespace ATM.Services
             {
                 return $"User {clientUser.name} has no email address, so no notification was sent.";
             }
-            // The decision is already saved, so a failed email must not undo or abort it.
             try
             {
                 sendEmail();
