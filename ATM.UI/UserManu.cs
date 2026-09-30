@@ -1,472 +1,281 @@
 using ATM.Core.Enums;
 using ATM.Core.Exceptions;
-using ATM.Core.Interfaces;
 using ATM.Core.Models;
 using ATM.Services;
+using Spectre.Console;
 
 namespace ATM.UI
 {
     internal class UserManu
     {
-        private readonly ATMServices _services;
-        private readonly Interface1 _repository;
+        private const decimal MaxAmount = 10000000000m;
 
-        public UserManu(ATMServices services, Interface1 repository)
+        private const string OpenAccount = "Open a new account";
+        private const string DeleteAccount = "Delete an account";
+        private const string Deposit = "Deposit money";
+        private const string Withdraw = "Withdraw money";
+        private const string TransferOwn = "Transfer between my accounts";
+        private const string TransferByName = "Transfer to another user by name";
+        private const string TransferByAccount = "Transfer to another user by account number";
+        private const string RequestLoan = "Request a loan";
+        private const string UpdateSalary = "Update monthly salary";
+        private const string DeleteProfile = "Delete my profile";
+        private const string LogOut = "Log out";
+
+        private readonly ATMServices _services;
+
+        public UserManu(ATMServices services)
         {
             _services = services;
-            _repository = repository;
         }
 
-        public void Show(ATMServices services, ClientUser clientUser)
+        public void Show(ClientUser clientUser)
         {
-            Console.WriteLine("Welcome, " + clientUser.name + "!");
-            Console.WriteLine();
-            Console.WriteLine("your Loans: ");
-            if (clientUser.Loan.Status == LoanStatus.DidnotRequested)
-            {
-                Console.WriteLine("You have not requested any loans.");
-            }
-            else if (clientUser.Loan.Status == LoanStatus.Pending)
-            {
-                Console.WriteLine($"Loan Requested: {clientUser.Loan.RequestedAmount} gel, Time: {clientUser.Loan.Time} months.");
-            }
-            else if (clientUser.Loan.Status == LoanStatus.Approved)
-            {
-                Console.WriteLine($"Your Loan Amount: {clientUser.Loan.RequestedAmount} gel, Time: {clientUser.Loan.Time} months.");
-            }
-            Console.WriteLine("Your accounts: ");
-            foreach (var account in clientUser.Accounts)
-            {
-                Console.WriteLine("- Account Number: " + account.AccountNumber + ", Balance: " + account.Balance + " gel");
-            }
             while (true)
             {
-                Console.WriteLine("1 - Add new Account");
-                Console.WriteLine("2 - Add Money to Account");
-                Console.WriteLine("3 - Subtract Money from Account");
-                Console.WriteLine("4 - Transfer Money to Your Account");
-                Console.WriteLine("5 - Transfer Money to Another Account by name");
-                Console.WriteLine("6 - Transfer Money to Another Account by Account Number");
-                Console.WriteLine("7 - Request Loan");
-                Console.WriteLine("8 - Delete Account");
-                Console.WriteLine("9 - Exit");
-                var choice = Console.ReadLine();
-                switch (choice)
+                ShowDashboard(clientUser);
+                string choice = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("What would you like to do?")
+                        .PageSize(12)
+                        .AddChoices(OpenAccount, DeleteAccount, Deposit, Withdraw, TransferOwn, TransferByName, TransferByAccount, RequestLoan, UpdateSalary, DeleteProfile, LogOut));
+                if (choice == LogOut)
                 {
-                    case "1":
-                        services.AddAccountToClientUser(clientUser);
-                        Console.WriteLine("New account added successfully.");
-                        foreach (var account in clientUser.Accounts)
-                        {
-                            Console.WriteLine("- Account Number: " + account.AccountNumber + ", Balance: " + account.Balance + " gel");
-                        }
-                        break;
-                    case "2":
-                        Console.WriteLine("Enter amount to add:");
-                        if (decimal.TryParse(Console.ReadLine(), out decimal amount) && amount > 0 && amount <= 10000000000)
-                        {
-                            if (clientUser.Accounts.Count == 1)
-                            {
-                                services.AddMoneyToAccount(clientUser, clientUser.Accounts[0].AccountNumber, amount);
-                                Console.WriteLine();
-                                Console.WriteLine("Money added succesfully");
-                                foreach (var account in clientUser.Accounts)
-                                {
-                                    Console.WriteLine("- Account Number: " + account.AccountNumber + ", Balance: " + account.Balance + " gel");
-                                }
-                                Console.WriteLine();
-                            }
-
-                            else if (clientUser.Accounts.Count > 1)
-                            {
-                                Console.WriteLine("Choose Account To Add Money:");
-                                for (int i = 0; i < clientUser.Accounts.Count; i++)
-                                {
-                                    Console.WriteLine($"{i + 1} - Account Number: {clientUser.Accounts[i].AccountNumber}, Balance: {clientUser.Accounts[i].Balance} gel");
-                                }
-                                if (int.TryParse(Console.ReadLine(), out int accountIndex) && accountIndex >= 1 && accountIndex <= clientUser.Accounts.Count)
-                                {
-                                    services.AddMoneyToAccount(clientUser, clientUser.Accounts[accountIndex - 1].AccountNumber, amount);
-                                    Console.WriteLine();
-                                    Console.WriteLine("Money added succesfully");
-                                    foreach (var account in clientUser.Accounts)
-                                    {
-                                        Console.WriteLine("- Account Number: " + account.AccountNumber + ", Balance: " + account.Balance + " gel");
-                                    }
-                                    Console.WriteLine();
-                                }
-                                else
-                                {
-                                    Console.WriteLine("Invalid account selection.");
-                                }
-                            }
-                            else
-                            {
-                                Console.WriteLine("Invalid account number format.");
-                            }
-                        }
-                        else
-                        {
-                            Console.WriteLine("Invalid amount.");
-                        }
-                        break;
-                    case "3":
-                        Console.WriteLine("Enter amount to subtract:");
-                        if (decimal.TryParse(Console.ReadLine(), out decimal subtractAmount))
-                        {
-                            if (clientUser.Accounts.Count == 1)
-                            {
-                                try
-                                {
-                                    services.SubtractMoneyFromAccount(clientUser, clientUser.Accounts[0].AccountNumber, subtractAmount);
-                                }
-                                catch (InsufficientFundsException ex)
-                                {
-                                    Console.WriteLine();
-                                    Console.WriteLine(ex.Message);
-                                    Console.WriteLine();
-                                    foreach (var account in clientUser.Accounts)
-                                    {
-                                        Console.WriteLine("- Account Number: " + account.AccountNumber + ", Balance: " + account.Balance + " gel");
-                                    }
-                                    break;
-                                }
-                                {
-                                    Console.WriteLine();
-                                    Console.WriteLine();
-                                    foreach (var account in clientUser.Accounts)
-                                    {
-                                        Console.WriteLine("- Account Number: " + account.AccountNumber + ", Balance: " + account.Balance + " gel");
-                                    }
-                                    break;
-                                }
-                            }
-                            else if (clientUser.Accounts.Count > 1)
-                            {
-                                Console.WriteLine("Choose Account To Subtract Money:");
-                                for (int i = 0; i < clientUser.Accounts.Count; i++)
-                                {
-                                    Console.WriteLine($"{i + 1} - Account Number: {clientUser.Accounts[i].AccountNumber}, Balance: {clientUser.Accounts[i].Balance} gel");
-                                }
-                                if (int.TryParse(Console.ReadLine(), out int accountIndex) && accountIndex >= 1 && accountIndex <= clientUser.Accounts.Count)
-                                {
-                                    try
-                                    {
-                                        services.SubtractMoneyFromAccount(clientUser, clientUser.Accounts[accountIndex - 1].AccountNumber, subtractAmount);
-                                    }
-                                    catch (InsufficientFundsException ex)
-                                    {
-                                        Console.WriteLine();
-                                        Console.WriteLine(ex.Message);
-                                        Console.WriteLine();
-                                        foreach (var account in clientUser.Accounts)
-                                        {
-                                            Console.WriteLine("- Account Number: " + account.AccountNumber + ", Balance: " + account.Balance + " gel");
-                                        }
-                                        break;
-                                    }
-                                    Console.WriteLine();
-                                    Console.WriteLine("Money subtracted succesfully");
-                                    foreach (var account in clientUser.Accounts)
-                                    {
-                                        Console.WriteLine("- Account Number: " + account.AccountNumber + ", Balance: " + account.Balance + " gel");
-                                    }
-                                    Console.WriteLine();
-                                }
-                                else
-                                {
-                                    Console.WriteLine("Invalid account selection.");
-                                }
-                            }
-                            else
-                            {
-                                Console.WriteLine("Invalid account number format.");
-                            }
-                        }
-                        else
-                        {
-                            Console.WriteLine("Invalid amount format.");
-                        }
-                        break;
-                    case "4":
-                        Console.WriteLine("Enter amount to transfer:");
-                        if (decimal.TryParse(Console.ReadLine(), out decimal transferAmount))
-                        {
-                            if (clientUser.Accounts.Count == 1)
-                            {
-                                Console.WriteLine("You have only one account. Cannot transfer money.");
-                            }
-                            else if (clientUser.Accounts.Count > 1)
-                            {
-                                Console.WriteLine("Choose Account To Transfer Money From:");
-                                for (int i = 0; i < clientUser.Accounts.Count; i++)
-                                {
-                                    Console.WriteLine($"{i + 1} - Account Number: {clientUser.Accounts[i].AccountNumber}, Balance: {clientUser.Accounts[i].Balance} gel");
-                                }
-                                if (int.TryParse(Console.ReadLine(), out int fromAccountIndex) && fromAccountIndex >= 1 && fromAccountIndex <= clientUser.Accounts.Count)
-                                {
-                                    Console.WriteLine("Choose Account To Transfer Money To:");
-                                    for (int i = 0; i < clientUser.Accounts.Count; i++)
-                                    {
-                                        if (i != fromAccountIndex - 1)
-                                        {
-                                            Console.WriteLine($"{i + 1} - Account Number: {clientUser.Accounts[i].AccountNumber}, Balance: {clientUser.Accounts[i].Balance} gel");
-                                        }
-                                    }
-                                    if (int.TryParse(Console.ReadLine(), out int toAccountIndex) && toAccountIndex >= 1 && toAccountIndex <= clientUser.Accounts.Count && toAccountIndex != fromAccountIndex)
-                                    {
-                                        try
-                                        {
-                                            services.TransferMoneyToOwnerAccount(clientUser, clientUser.Accounts[fromAccountIndex - 1].AccountNumber, clientUser.Accounts[toAccountIndex - 1].AccountNumber, transferAmount);
-
-                                        }
-                                        catch (InsufficientFundsException ex)
-                                        {
-                                            Console.WriteLine();
-                                            Console.WriteLine(ex.Message);
-                                            Console.WriteLine();
-                                            foreach (var account in clientUser.Accounts)
-                                            {
-                                                Console.WriteLine("- Account Number: " + account.AccountNumber + ", Balance: " + account.Balance + " gel");
-                                            }
-                                            break;
-                                        }
-                                        Console.WriteLine();
-                                        Console.WriteLine("Money transferred succesfully");
-                                        foreach (var account in clientUser.Accounts)
-                                        {
-                                            Console.WriteLine("- Account Number: " + account.AccountNumber + ", Balance: " + account.Balance + " gel");
-                                        }
-                                        Console.WriteLine();
-                                    }
-                                    else
-                                    {
-                                        Console.WriteLine("Invalid account selection.");
-                                    }
-                                }
-                                else
-                                {
-                                    Console.WriteLine("Invalid account selection.");
-                                }
-                            }
-                            else
-                            {
-                                Console.WriteLine("Invalid account number format.");
-                            }
-                        }
-                        else
-                        {
-                            Console.WriteLine("Invalid amount format.");
-                        }
-                        break;
-                    case "5":
-                        Console.WriteLine("Enter the name of the user to transfer money to:");
-                        string receiverName = Console.ReadLine();
-                        var receiver = services.FindClientUserByName(receiverName);
-                        if (receiver == null)
-                        {
-                            Console.WriteLine("User not found.");
-                            break;
-                        }
-                        if (receiver.id == clientUser.id)
-                        {
-                            Console.WriteLine("You cannot transfer money to your own account this way. Use option 4 instead.");
-                            break;
-                        }
-                        Console.WriteLine("Enter amount to transfer:");
-                        if (decimal.TryParse(Console.ReadLine(), out decimal transferAmountToAnotherUser))
-                        {
-                            if (clientUser.Accounts.Count == 0)
-                            {
-                                Console.WriteLine("You have no accounts. Cannot transfer money.");
-                                break;
-                            }
-                            Console.WriteLine("Choose Account To Transfer Money From:");
-                            for (int i = 0; i < clientUser.Accounts.Count; i++)
-                            {
-                                Console.WriteLine($"{i + 1} - Account Number: {clientUser.Accounts[i].AccountNumber}, Balance: {clientUser.Accounts[i].Balance} gel");
-                            }
-                            if (int.TryParse(Console.ReadLine(), out int fromAccountIndex) && fromAccountIndex >= 1 && fromAccountIndex <= clientUser.Accounts.Count)
-                            {
-                                if (receiver.Accounts.Count == 0)
-                                {
-                                    Console.WriteLine("The receiver has no accounts. Cannot transfer money.");
-                                    break;
-                                }
-                                Console.WriteLine("Choose Account To Transfer Money To:");
-                                for (int i = 0; i < receiver.Accounts.Count; i++)
-                                {
-                                    Console.WriteLine($"{i + 1} - Account Number: {receiver.Accounts[i].AccountNumber}");
-                                }
-                                if (int.TryParse(Console.ReadLine(), out int toAccountIndex) && toAccountIndex >= 1 && toAccountIndex <= receiver.Accounts.Count)
-                                {
-                                    try
-                                    {
-                                        services.TransferMoneyToAnotherUser(clientUser, receiver, clientUser.Accounts[fromAccountIndex - 1].AccountNumber, receiver.Accounts[toAccountIndex - 1].AccountNumber, transferAmountToAnotherUser);
-                                        Console.WriteLine();
-                                        Console.WriteLine("Money transferred succesfully");
-                                    }
-                                    catch (InsufficientFundsException ex)
-                                    {
-                                        Console.WriteLine();
-                                        Console.WriteLine(ex.Message);
-                                        Console.WriteLine();
-                                        foreach (var account in clientUser.Accounts)
-                                        {
-                                            Console.WriteLine("- Account Number: " + account.AccountNumber + ", Balance: " + account.Balance + " gel");
-                                        }
-                                        break;
-                                    }
-                                    foreach (var account in clientUser.Accounts)
-                                    {
-                                        Console.WriteLine("- Account Number: " + account.AccountNumber + ", Balance: " + account.Balance + " gel");
-                                    }
-                                }
-                            }
-                        }
-                        break;
-                    case "6":
-                        Console.WriteLine("Enter the account number of the user to transfer money to:");
-                        if (int.TryParse(Console.ReadLine(), out int receiverAccountNumber))
-                        {
-                            var receiverByAccount = services.FindClientUserByAccountNumber(receiverAccountNumber);
-                            if (receiverByAccount == null)
-                            {
-                                Console.WriteLine("User with that account number not found.");
-                                break;
-                            }
-                            if (receiverByAccount.id == clientUser.id)
-                            {
-                                Console.WriteLine("You cannot transfer money to your own account this way. Use option 4 instead.");
-                                break;
-                            }
-                            Console.WriteLine("Enter amount to transfer:");
-                            if (decimal.TryParse(Console.ReadLine(), out decimal transferAmountToAnotherUserByAccount))
-                            {
-                                if (clientUser.Accounts.Count == 0)
-                                {
-                                    Console.WriteLine("You have no accounts. Cannot transfer money.");
-                                    break;
-                                }
-                                Console.WriteLine("Choose Account To Transfer Money From:");
-                                for (int i = 0; i < clientUser.Accounts.Count; i++)
-                                {
-                                    Console.WriteLine($"{i + 1} - Account Number: {clientUser.Accounts[i].AccountNumber}, Balance: {clientUser.Accounts[i].Balance} gel");
-                                }
-                                if (int.TryParse(Console.ReadLine(), out int fromAccountIndex) && fromAccountIndex >= 1 && fromAccountIndex <= clientUser.Accounts.Count)
-                                {
-                                    try
-                                    {
-                                        services.TransferMoneyToAnotherUser(clientUser, receiverByAccount, clientUser.Accounts[fromAccountIndex - 1].AccountNumber, receiverAccountNumber, transferAmountToAnotherUserByAccount);
-                                        Console.WriteLine();
-                                        Console.WriteLine("Money transferred succesfully");
-                                        Console.WriteLine();
-                                    }
-                                    catch (InsufficientFundsException ex)
-                                    {
-                                        Console.WriteLine();
-                                        Console.WriteLine(ex.Message);
-                                        Console.WriteLine();
-                                        foreach (var account in clientUser.Accounts)
-                                        {
-                                            Console.WriteLine("- Account Number: " + account.AccountNumber + ", Balance: " + account.Balance + " gel");
-                                        }
-                                        break;
-                                    }
-                                    foreach (var account in clientUser.Accounts)
-                                    {
-                                        Console.WriteLine("- Account Number: " + account.AccountNumber + ", Balance: " + account.Balance + " gel");
-                                    }
-                                }
-                            }
-                        }
-                        break;
-                    case "7":
-                        try
-                        {
-                            Console.WriteLine("Enter the amount you want to request for the loan:");
-                            if (decimal.TryParse(Console.ReadLine(), out decimal loanAmount) && loanAmount > 0 && loanAmount <= 10000000000)
-                            {
-                                if (loanAmount <= 400)
-                                {
-                                    throw new LoanExeption("Loan amount must be greater than 400 gel.");
-                                }
-                                Console.WriteLine("Enter the time period for the loan in Months:");
-                                if (int.TryParse(Console.ReadLine(), out int loanTime))
-                                    if (loanTime > 4 && loanTime <= 48)
-                                    {
-                                        int loanAccountNumber;
-                                        if (clientUser.Accounts.Count == 1)
-                                        {
-                                            loanAccountNumber = clientUser.Accounts[0].AccountNumber;
-                                            services.RequestLoan(clientUser, loanAmount, loanTime, loanAccountNumber);
-                                        }
-                                        else
-                                        {
-                                            Console.WriteLine("Choose Account To Receive The Loan:");
-                                            for (int i = 0; i < clientUser.Accounts.Count; i++)
-                                            {
-                                                Console.WriteLine($"{i + 1} - Account Number: {clientUser.Accounts[i].AccountNumber}, Balance: {clientUser.Accounts[i].Balance} gel");
-                                            }
-                                            if (int.TryParse(Console.ReadLine(), out int loanAccountIndex) && loanAccountIndex >= 1 && loanAccountIndex <= clientUser.Accounts.Count)
-                                            {
-                                                loanAccountNumber = clientUser.Accounts[loanAccountIndex - 1].AccountNumber;
-                                                services.RequestLoan(clientUser, loanAmount, loanTime, loanAccountNumber);
-                                            }
-                                            else
-                                            {
-                                                Console.WriteLine("Invalid account selection.");
-                                            }
-                                        }
-
-                                    }
-                                    else
-                                    {
-                                        throw new LoanExeption("Loan time must be between 5 and 48 months.");
-                                    }
-                                else
-                                {
-                                    Console.WriteLine("Invalid time format.");
-                                }
-                            }
-                            else
-                            {
-                                throw new FormatException("Invalid amount format.");
-                            }
-                        }
-                        catch (LoanExeption ex)
-                        {
-                            Console.WriteLine();
-                            Console.WriteLine(ex.Message);
-                            Console.WriteLine();
-                        }
-                        catch (FormatException ex)
-                        {
-                            Console.WriteLine();
-                            Console.WriteLine(ex.Message);
-                            Console.WriteLine();
-                        }
-                        break;
-                    case "8":
-                        try
-                        {
-                            services.DeleteClientUser(clientUser);
-                            Console.WriteLine("Your account has been deleted successfully.");
-                            return;
-                        }
-                        catch (DeleteAccountExtension ex)
-                        {
-                            Console.WriteLine();
-                            Console.WriteLine(ex.Message);
-                            Console.WriteLine();
-                            break;
-                        }
-                    case "9":
-                        return;
-                    default:
-                        Console.WriteLine("Invalid choice.");
-                        break;
+                    return;
                 }
+
+                try
+                {
+                    switch (choice)
+                    {
+                        case OpenAccount:
+                            _services.AddAccountToClientUser(clientUser);
+                            ConsoleUi.Success($"New account {clientUser.Accounts[^1].AccountNumber} opened.");
+                            break;
+                        case DeleteAccount:
+                            DeleteEmptyAccount(clientUser);
+                            break;
+                        case Deposit:
+                            DepositMoney(clientUser);
+                            break;
+                        case Withdraw:
+                            WithdrawMoney(clientUser);
+                            break;
+                        case TransferOwn:
+                            TransferBetweenOwnAccounts(clientUser);
+                            break;
+                        case TransferByName:
+                            TransferToUserByName(clientUser);
+                            break;
+                        case TransferByAccount:
+                            TransferToAccountNumber(clientUser);
+                            break;
+                        case RequestLoan:
+                            RequestNewLoan(clientUser);
+                            break;
+                        case UpdateSalary:
+                            UpdateMonthlySalary(clientUser);
+                            break;
+                        case DeleteProfile:
+                            if (!AnsiConsole.Confirm("[red]Delete your profile and all of its accounts? This cannot be undone.[/]", false))
+                            {
+                                continue;
+                            }
+                            _services.DeleteClientUser(clientUser);
+                            ConsoleUi.Success("Your profile has been deleted.");
+                            ConsoleUi.Pause();
+                            return;
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    continue;
+                }
+                catch (Exception ex) when (ex is InsufficientFundsException || ex is LoanExeption || ex is DeleteAccountExtension || ex is InvalidOperationException)
+                {
+                    ConsoleUi.Error(ex.Message);
+                }
+                ConsoleUi.Pause();
+            }
+        }
+
+        private static void ShowDashboard(ClientUser clientUser)
+        {
+            ConsoleUi.ShowTitle($"Welcome, {clientUser.name}!");
+            var summary = new Grid().AddColumns(2);
+            summary.AddRow("Total balance:", $"[bold green]{ConsoleUi.Money(clientUser.TotalBalance())}[/]");
+            summary.AddRow("[grey]Monthly salary:[/]", $"[grey]{ConsoleUi.Money(clientUser.Salary)}[/]");
+            AnsiConsole.Write(summary);
+            AnsiConsole.WriteLine();
+            if (clientUser.Accounts.Count == 0)
+            {
+                ConsoleUi.Info("You have no accounts. Open one from the menu below.");
+            }
+            else
+            {
+                AnsiConsole.Write(ConsoleUi.AccountsTable(clientUser.Accounts, "Your accounts"));
+            }
+            AnsiConsole.Write(
+                new Panel(new Markup(ConsoleUi.LoanSummaryMarkup(clientUser.Loan)))
+                    .Header("Your loan")
+                    .Border(BoxBorder.Rounded)
+                    .BorderColor(Color.Grey));
+            AnsiConsole.WriteLine();
+        }
+
+        private void DeleteEmptyAccount(ClientUser clientUser)
+        {
+            if (clientUser.Accounts.Count <= 1)
+            {
+                ConsoleUi.Error("You cannot delete your only account.");
+                return;
+            }
+            List<Account> emptyAccounts = clientUser.Accounts.Where(a => a.Balance == 0).ToList();
+            if (emptyAccounts.Count == 0)
+            {
+                ConsoleUi.Error("Only an account with no money in it can be deleted. Withdraw or transfer the money first.");
+                return;
+            }
+            Account account = ConsoleUi.SelectAccount("Delete which account? [grey](only empty accounts are listed)[/]", emptyAccounts);
+            if (!AnsiConsole.Confirm($"Delete account {account.AccountNumber}?", false))
+            {
+                throw new OperationCanceledException();
+            }
+            _services.DeleteAccountFromClientUser(clientUser, account.AccountNumber);
+            ConsoleUi.Success($"Account {account.AccountNumber} deleted.");
+        }
+
+        private void DepositMoney(ClientUser clientUser)
+        {
+            Account account = ConsoleUi.SelectAccount("Deposit to which account?", clientUser.Accounts);
+            decimal amount = ConsoleUi.PromptAmount("Amount to deposit", max: MaxAmount);
+            _services.AddMoneyToAccount(clientUser, account.AccountNumber, amount);
+            ConsoleUi.Success($"Deposited {ConsoleUi.Money(amount)} to account {account.AccountNumber}.");
+        }
+
+        private void WithdrawMoney(ClientUser clientUser)
+        {
+            Account account = ConsoleUi.SelectAccount("Withdraw from which account?", clientUser.Accounts);
+            decimal amount = ConsoleUi.PromptAmount("Amount to withdraw");
+            _services.SubtractMoneyFromAccount(clientUser, account.AccountNumber, amount);
+            ConsoleUi.Success($"Withdrew {ConsoleUi.Money(amount)} from account {account.AccountNumber}.");
+        }
+
+        // Checked before asking for any transfer details, so the user is told straight away.
+        private static bool HasMoneyToTransfer(ClientUser clientUser)
+        {
+            if (clientUser.TotalBalance() > 0)
+            {
+                return true;
+            }
+            ConsoleUi.Error($"You cannot transfer money because your total balance is {ConsoleUi.Money(0)}.");
+            return false;
+        }
+
+        private void TransferBetweenOwnAccounts(ClientUser clientUser)
+        {
+            if (!HasMoneyToTransfer(clientUser))
+            {
+                return;
+            }
+            if (clientUser.Accounts.Count < 2)
+            {
+                ConsoleUi.Error("You have only one account. Open another account to transfer between them.");
+                return;
+            }
+            Account from = ConsoleUi.SelectAccount("Transfer from which account?", clientUser.Accounts);
+            Account to = ConsoleUi.SelectAccount("Transfer to which account?", clientUser.Accounts.Where(a => a != from).ToList());
+            decimal amount = ConsoleUi.PromptAmount("Amount to transfer");
+            _services.TransferMoneyToOwnerAccount(clientUser, from.AccountNumber, to.AccountNumber, amount);
+            ConsoleUi.Success($"Transferred {ConsoleUi.Money(amount)} from account {from.AccountNumber} to account {to.AccountNumber}.");
+        }
+
+        private void TransferToUserByName(ClientUser clientUser)
+        {
+            if (!HasMoneyToTransfer(clientUser))
+            {
+                return;
+            }
+            string receiverName = AnsiConsole.Prompt(new TextPrompt<string>("Recipient's name:"));
+            var receiver = _services.FindClientUserByName(receiverName);
+            if (receiver == null)
+            {
+                ConsoleUi.Error("User not found.");
+                return;
+            }
+            if (receiver.id == clientUser.id)
+            {
+                ConsoleUi.Error($"You cannot transfer money to yourself this way. Use \"{TransferOwn}\" instead.");
+                return;
+            }
+            if (receiver.Accounts.Count == 0)
+            {
+                ConsoleUi.Error("The recipient has no accounts. Cannot transfer money.");
+                return;
+            }
+            Account from = ConsoleUi.SelectAccount("Transfer from which account?", clientUser.Accounts);
+            Account to = ConsoleUi.SelectAccount($"Transfer to which of {Markup.Escape(receiver.name)}'s accounts?", receiver.Accounts, showBalance: false);
+            decimal amount = ConsoleUi.PromptAmount("Amount to transfer");
+            _services.TransferMoneyToAnotherUser(clientUser, receiver, from.AccountNumber, to.AccountNumber, amount);
+            ConsoleUi.Success($"Transferred {ConsoleUi.Money(amount)} to {receiver.name} (account {to.AccountNumber}).");
+        }
+
+        private void TransferToAccountNumber(ClientUser clientUser)
+        {
+            if (!HasMoneyToTransfer(clientUser))
+            {
+                return;
+            }
+            // Lowercase input such as ge123456789 is accepted and turned into GE123456789.
+            string receiverAccountNumber = AnsiConsole.Prompt(
+                new TextPrompt<string>("Recipient's account number [grey](for example GE123456789)[/]:")
+                    .Validate(n => ATMServices.IsValidAccountNumber(n.Trim().ToUpperInvariant()), $"[red]{ATMServices.AccountNumberRule}[/]"))
+                .Trim().ToUpperInvariant();
+            var receiver = _services.FindClientUserByAccountNumber(receiverAccountNumber);
+            if (receiver == null)
+            {
+                ConsoleUi.Error("User with that account number not found.");
+                return;
+            }
+            if (receiver.id == clientUser.id)
+            {
+                ConsoleUi.Error($"You cannot transfer money to yourself this way. Use \"{TransferOwn}\" instead.");
+                return;
+            }
+            Account from = ConsoleUi.SelectAccount("Transfer from which account?", clientUser.Accounts);
+            decimal amount = ConsoleUi.PromptAmount("Amount to transfer");
+            _services.TransferMoneyToAnotherUser(clientUser, receiver, from.AccountNumber, receiverAccountNumber, amount);
+            ConsoleUi.Success($"Transferred {ConsoleUi.Money(amount)} to account {receiverAccountNumber}.");
+        }
+
+        private void RequestNewLoan(ClientUser clientUser)
+        {
+            string? blockedReason = ATMServices.LoanRequestBlockedReason(clientUser);
+            if (blockedReason != null)
+            {
+                ConsoleUi.Error(blockedReason);
+                return;
+            }
+            decimal amount = ConsoleUi.PromptAmount("Loan amount", greaterThan: 400m, max: MaxAmount);
+            int months = AnsiConsole.Prompt(
+                new TextPrompt<int>("Loan term in months [grey](5-48)[/]:")
+                    .Validate(m => m >= 5 && m <= 48, "[red]Loan time must be between 5 and 48 months.[/]"));
+            Account account = ConsoleUi.SelectAccount("Which account should receive the loan?", clientUser.Accounts);
+            _services.RequestLoan(clientUser, amount, months, account.AccountNumber);
+            ConsoleUi.Success("Loan request submitted. An admin will review it.");
+        }
+
+        private void UpdateMonthlySalary(ClientUser clientUser)
+        {
+            ConsoleUi.Info($"Current monthly salary: {ConsoleUi.Money(clientUser.Salary)}");
+            decimal newSalary = AnsiConsole.Prompt(
+                new TextPrompt<decimal>("New monthly salary (gel):")
+                    .Validate(s => s >= 0, $"[red]{ATMServices.SalaryRule}[/]"));
+            _services.UpdateSalary(clientUser, newSalary);
+            ConsoleUi.Success($"Monthly salary updated to {ConsoleUi.Money(newSalary)}.");
+            if (clientUser.Loan.Status == LoanStatus.Approved || clientUser.Loan.Status == LoanStatus.Rejected)
+            {
+                ConsoleUi.Info("You can now request a new loan.");
             }
         }
     }

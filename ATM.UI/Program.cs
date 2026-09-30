@@ -1,63 +1,156 @@
+using ATM.Core.Exceptions;
 using ATM.Core.Interfaces;
 using ATM.Core.Models;
 using ATM.Infrastructure.Repository;
 using ATM.Services;
 using ATM.UI;
+using Spectre.Console;
+using System.Text;
 
 internal class Program
 {
+    private const string RegisterUser = "Register user";
+    private const string RegisterAdmin = "Register admin";
+    private const string LoginUser = "Log in as user";
+    private const string LoginAdmin = "Log in as admin";
+    private const string Exit = "Exit";
+
     private static void Main(string[] args)
     {
+        // Lets Windows terminals draw the rounded table borders instead of falling back to ASCII.
+        Console.OutputEncoding = Encoding.UTF8;
 
         Interface1 repository = new Repository();
 
-        ATMServices services = new ATMServices(repository);
+        IEmailService emailService = new EmailService();
+
+        ATMServices services = new ATMServices(repository, emailService);
 
         while (true)
         {
-            Console.WriteLine("Choose an option:");
-            Console.WriteLine("1. Register User");
-            Console.WriteLine("2. Register Admin");
-            Console.WriteLine("3. Login to User");
-            Console.WriteLine("4. Login to Admin");
-            Console.WriteLine("5. Exit");
-            string choice = Console.ReadLine();
+            ConsoleUi.ShowBanner();
+            string choice = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("Choose an option:")
+                    .AddChoices(RegisterUser, RegisterAdmin, LoginUser, LoginAdmin, Exit));
             try
             {
                 switch (choice)
                 {
-                    case "1":
-                        ClientUser clientUser = new ClientUser();
-                        services.RegisterUser(clientUser);
-                        Console.WriteLine("Registration successful!");
-                        break;
-                    case "2":
-                        AdminUser adminUser = new AdminUser();
-                        services.RegisterAdminUser(adminUser);
-                        Console.WriteLine("Admin registration successful!");
-                        break;
-                    case "3":
-                        ClientUser loggedInUser = services.LoginUser();
-                        var userMenu = new UserManu(services, repository);
-                        userMenu.Show(services, loggedInUser);
-                        break;
-                    case "4":
-                        User loggedInAdmin = services.LoginAdmin();
-                        var adminMenu = new AdminManu(services, repository);
-                        adminMenu.Show(services, loggedInAdmin);
-                        break;
-                    case "5":
+                    case RegisterUser:
+                        ClientUser registeredUser = RegisterClient(services);
+                        ConsoleUi.Pause();
+                        new UserManu(services).Show(registeredUser);
+                        continue;
+                    case RegisterAdmin:
+                        AdminUser registeredAdmin = RegisterAdministrator(services);
+                        ConsoleUi.Pause();
+                        new AdminManu(services).Show(registeredAdmin);
+                        continue;
+                    case LoginUser:
+                        ConsoleUi.ShowTitle("User login");
+                        ClientUser loggedInUser = services.LoginUser(PromptName(), ConsoleUi.PromptPassword());
+                        new UserManu(services).Show(loggedInUser);
+                        continue;
+                    case LoginAdmin:
+                        ConsoleUi.ShowTitle("Admin login");
+                        User loggedInAdmin = services.LoginAdmin(PromptName(), ConsoleUi.PromptPassword());
+                        new AdminManu(services).Show(loggedInAdmin);
+                        continue;
+                    case Exit:
                         return;
-                    default:
-                        Console.WriteLine("Invalid choice.");
-                        break;
-
                 }
+            }
+            catch (UserBannedException ex)
+            {
+                AnsiConsole.WriteLine();
+                AnsiConsole.Write(
+                    new Panel(new Markup($"[bold red]{Markup.Escape(ex.Message)}[/]"))
+                        .Header("[red]Banned[/]")
+                        .Border(BoxBorder.Heavy)
+                        .BorderColor(Color.Red));
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred: {ex.Message}");
+                ConsoleUi.Error(ex.Message);
             }
+            ConsoleUi.Pause();
         }
+    }
+
+    private static string PromptName()
+    {
+        return AnsiConsole.Prompt(new TextPrompt<string>("Name:"));
+    }
+
+    private static string PromptNewName(Func<string, bool> isTaken)
+    {
+        return AnsiConsole.Prompt(
+            new TextPrompt<string>("Name:")
+                .Validate(n =>
+                {
+                    if (!ATMServices.IsValidName(n))
+                    {
+                        return ValidationResult.Error($"[red]{ATMServices.NameRule}[/]");
+                    }
+                    if (isTaken(n))
+                    {
+                        return ValidationResult.Error("[red]A user with that name already exists. Please choose a different name.[/]");
+                    }
+                    return ValidationResult.Success();
+                }));
+    }
+
+    // Returns the new client, who is logged in straight away.
+    private static ClientUser RegisterClient(ATMServices services)
+    {
+        ConsoleUi.ShowTitle("Register user");
+        string name = PromptNewName(services.IsClientNameTaken);
+        string password = ConsoleUi.PromptNewPassword();
+        decimal salary = AnsiConsole.Prompt(
+            new TextPrompt<decimal>("Monthly salary (gel):")
+                .Validate(s => s >= 0, $"[red]{ATMServices.SalaryRule}[/]"));
+        string email = AnsiConsole.Prompt(
+            new TextPrompt<string>("Email:")
+                .Validate(e =>
+                {
+                    if (!ATMServices.IsValidEmail(e.Trim()))
+                    {
+                        return ValidationResult.Error("[red]Invalid email address.[/]");
+                    }
+                    if (services.IsEmailTaken(e.Trim()))
+                    {
+                        return ValidationResult.Error("[red]A user with that email already exists. Please use a different email.[/]");
+                    }
+                    return ValidationResult.Success();
+                })).Trim();
+
+        PendingRegistration registration = AnsiConsole.Status().Start(
+            "Sending verification code...",
+            _ => services.StartUserRegistration(name, password, salary, email));
+        ConsoleUi.Info($"A 4-digit verification code has been sent to {email}. It expires in 5 minutes.");
+
+        while (true)
+        {
+            string code = AnsiConsole.Prompt(new TextPrompt<string>("Verification code:")).Trim();
+            if (services.CompleteUserRegistration(registration, code))
+            {
+                break;
+            }
+            ConsoleUi.Error($"Incorrect code. {registration.AttemptsLeft} attempt(s) left.");
+        }
+        ConsoleUi.Success($"Email verified. Registration successful! Your account number is {registration.ClientUser.Accounts[0].AccountNumber}.");
+        return registration.ClientUser;
+    }
+
+    // Returns the new admin, who is logged in straight away.
+    private static AdminUser RegisterAdministrator(ATMServices services)
+    {
+        ConsoleUi.ShowTitle("Register admin");
+        string name = PromptNewName(services.IsAdminNameTaken);
+        string password = ConsoleUi.PromptNewPassword();
+        AdminUser adminUser = services.RegisterAdminUser(name, password);
+        ConsoleUi.Success("Admin registration successful!");
+        return adminUser;
     }
 }

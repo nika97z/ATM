@@ -6,7 +6,7 @@ namespace ATM.Core.Exceptions
         {
         }
 
-        public DeleteAccountExtension(string? message) : base("Cannot delete user with balance.")
+        public DeleteAccountExtension(string? message) : base(message)
         {
         }
     }

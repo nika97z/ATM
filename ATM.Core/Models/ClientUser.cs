@@ -21,5 +21,17 @@ namespace ATM.Core.Models
 
         public decimal Salary { get; set; }
 
+        public string Email { get; set; } = string.Empty;
+
+        public bool IsBanned { get; set; }
+
+        // After a loan is approved or rejected, updating the salary is what allows a new loan request.
+        public bool SalaryUpdatedSinceLastLoan { get; set; }
+
+        public decimal TotalBalance()
+        {
+            return Accounts.Sum(a => a.Balance);
+        }
+
     }
 }

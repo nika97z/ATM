@@ -1,4 +1,6 @@
 using ATM.Core.Enums;
+using ATM.Core.Serialization;
+using System.Text.Json.Serialization;
 
 namespace ATM.Core.Models
 {
@@ -8,7 +10,7 @@ namespace ATM.Core.Models
         {
         }
 
-        public Loans(decimal amount, decimal requestedAmount, int time, LoanStatus status, int account)
+        public Loans(decimal amount, decimal requestedAmount, int time, LoanStatus status, string account)
         {
             Amount = amount;
             RequestedAmount = requestedAmount;
@@ -21,6 +23,8 @@ namespace ATM.Core.Models
         public decimal RequestedAmount { get; set; } = 0m;
         public int Time { get; set; } = 0;
         public LoanStatus Status { get; set; } = LoanStatus.DidnotRequested;
-        public int Account { get; set; }
+        // The account the loan is paid into; empty when no loan was requested.
+        [JsonConverter(typeof(AccountNumberJsonConverter))]
+        public string Account { get; set; } = string.Empty;
     }
 }

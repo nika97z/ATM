@@ -1,0 +1,2 @@
+{"Accounts":[{"AccountNumber":"GE167822039","Balance":0}],"Loan":{"Amount":0,"RequestedAmount":0,"Time":0,"Status":3,"Account":""},"Salary":2222,"Email":"zirakishvili3@gmail.com","IsBanned":false,"SalaryUpdatedSinceLastLoan":false,"id":1,"name":"nika","Password":"$2a$11$nPIVExOdbpp7OXbibRFgge.nI0L/ySbDgrJKWffJVmIcn9tgtZQLS","Role":1}
+{"RequestedLoans":null,"ApprovedLoans":null,"RejectedLoans":null,"id":1,"name":"nika","Password":"$2a$11$mwKKBPaCMqLCaYjLE1xnLOfElVb4XOWIfWa1JuaFp0nL2IGa208zC","Role":0}
