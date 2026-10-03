@@ -17,7 +17,6 @@ internal class Program
 
     private static void Main(string[] args)
     {
-        // Lets Windows terminals draw the rounded table borders instead of falling back to ASCII.
         Console.OutputEncoding = Encoding.UTF8;
 
         Interface1 repository = new Repository();
@@ -101,7 +100,6 @@ internal class Program
                 }));
     }
 
-    // Returns the new client, who is logged in straight away.
     private static ClientUser RegisterClient(ATMServices services)
     {
         ConsoleUi.ShowTitle("Register user");
@@ -125,25 +123,25 @@ internal class Program
                     return ValidationResult.Success();
                 })).Trim();
 
-        PendingRegistration registration = AnsiConsole.Status().Start(
+        AnsiConsole.Status().Start(
             "Sending verification code...",
             _ => services.StartUserRegistration(name, password, salary, email));
-        ConsoleUi.Info($"A 4-digit verification code has been sent to {email}. It expires in 5 minutes.");
+        ConsoleUi.Info($"A 4-digit verification code has been sent to {email}.");
 
-        while (true)
+        ClientUser? clientUser = null;
+        while (clientUser == null)
         {
             string code = AnsiConsole.Prompt(new TextPrompt<string>("Verification code:")).Trim();
-            if (services.CompleteUserRegistration(registration, code))
+            clientUser = services.CompleteUserRegistration(code);
+            if (clientUser == null)
             {
-                break;
+                ConsoleUi.Error("Incorrect code. Please try again.");
             }
-            ConsoleUi.Error($"Incorrect code. {registration.AttemptsLeft} attempt(s) left.");
         }
-        ConsoleUi.Success($"Email verified. Registration successful! Your account number is {registration.ClientUser.Accounts[0].AccountNumber}.");
-        return registration.ClientUser;
+        ConsoleUi.Success($"Email verified. Registration successful! Your account number is {clientUser.Accounts[0].AccountNumber}.");
+        return clientUser;
     }
 
-    // Returns the new admin, who is logged in straight away.
     private static AdminUser RegisterAdministrator(ATMServices services)
     {
         ConsoleUi.ShowTitle("Register admin");

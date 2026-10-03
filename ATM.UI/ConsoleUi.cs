@@ -5,9 +5,7 @@ using Spectre.Console;
 
 namespace ATM.UI
 {
-    // Shared Spectre.Console building blocks used by every screen.
-    // Anything that came from a user (names, emails, exception messages) must go through
-    // Markup.Escape before it is placed inside markup, or brackets in it would break rendering.
+
     internal static class ConsoleUi
     {
         public const string Accent = "deepskyblue1";
@@ -59,7 +57,6 @@ namespace ATM.UI
             return AnsiConsole.Prompt(new TextPrompt<string>("Password:").Secret());
         }
 
-        // For registration only; login still accepts older passwords that do not follow the rule.
         public static string PromptNewPassword()
         {
             return AnsiConsole.Prompt(
@@ -68,8 +65,7 @@ namespace ATM.UI
                     .Validate(ATMServices.IsValidPassword, $"[red]{ATMServices.PasswordRule}[/]"));
         }
 
-        // Asks for an amount of money. Entering 0 cancels the current action by throwing
-        // OperationCanceledException, which the menus treat as "back to the menu".
+
         public static decimal PromptAmount(string title, decimal greaterThan = 0m, decimal max = decimal.MaxValue)
         {
             decimal amount = AnsiConsole.Prompt(
@@ -97,8 +93,6 @@ namespace ATM.UI
             return amount;
         }
 
-        // Shows a list with a Cancel entry at the bottom. Choosing Cancel throws OperationCanceledException.
-        // describe must return markup, so escape any user-provided text inside it.
         public static T Select<T>(string title, IReadOnlyList<T> items, Func<T, string> describe)
         {
             const int cancel = -1;
@@ -116,7 +110,6 @@ namespace ATM.UI
             return items[index];
         }
 
-        // Picks the account automatically when there is only one to choose from.
         public static Account SelectAccount(string title, IReadOnlyList<Account> accounts, bool showBalance = true)
         {
             if (accounts.Count == 0)

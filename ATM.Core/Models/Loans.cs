@@ -1,6 +1,4 @@
 using ATM.Core.Enums;
-using ATM.Core.Serialization;
-using System.Text.Json.Serialization;
 
 namespace ATM.Core.Models
 {
@@ -24,7 +22,6 @@ namespace ATM.Core.Models
         public int Time { get; set; } = 0;
         public LoanStatus Status { get; set; } = LoanStatus.DidnotRequested;
         // The account the loan is paid into; empty when no loan was requested.
-        [JsonConverter(typeof(AccountNumberJsonConverter))]
         public string Account { get; set; } = string.Empty;
     }
 }

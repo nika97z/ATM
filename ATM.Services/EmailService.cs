@@ -8,7 +8,6 @@ namespace ATM.Services
 {
     public class EmailService : IEmailService
     {
-        // Gmail account that sends all emails. The password is a Google "App password", written without spaces.
         private const string SenderAddress = "ziraqishvili3@gmail.com";
         private const string AppPassword = "lddjxfkjijjdsjby";
 
@@ -21,7 +20,7 @@ namespace ATM.Services
             string body =
                 $"Hello {name},\n\n" +
                 $"Your ATM verification code is: {code}\n\n" +
-                "The code expires in 5 minutes. If you did not try to register, you can ignore this email.";
+                "If you did not try to register, you can ignore this email.";
             SendEmail(toEmail, "Your ATM verification code", body);
         }
 
@@ -81,7 +80,6 @@ namespace ATM.Services
                 Subject = subject,
                 Body = body
             };
-            // UseDefaultCredentials must be set before Credentials, because setting it clears Credentials.
             using var client = new SmtpClient(SmtpHost, SmtpPort)
             {
                 EnableSsl = true,
