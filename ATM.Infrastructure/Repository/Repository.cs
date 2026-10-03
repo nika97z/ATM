@@ -23,6 +23,15 @@ namespace ATM.Infrastructure.Repository
             File.AppendAllText(_logFilePath, logMessage + Environment.NewLine);
         }
 
+        public List<string> GetLogs()
+        {
+            if (!File.Exists(_logFilePath))
+            {
+                return new List<string>();
+            }
+            return File.ReadAllLines(_logFilePath).Where(line => !string.IsNullOrWhiteSpace(line)).ToList();
+        }
+
 
         public List<User> GetAll()
         {

@@ -14,6 +14,7 @@ namespace ATM.Core.Interfaces
         void UpdateClientUser(ClientUser updatedClientUser);
         void DeleteClientUser(ClientUser clientUser);
         void Log(string message);
+        List<string> GetLogs();
 
     }
 }

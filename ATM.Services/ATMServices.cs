@@ -331,6 +331,13 @@ namespace ATM.Services
         {
             return _repository.GetAllClientUsers();
         }
+        // Newest entries first.
+        public List<string> ViewLogs()
+        {
+            List<string> logs = _repository.GetLogs();
+            logs.Reverse();
+            return logs;
+        }
         public ClientUser FindClientUserByName(string name)
         {
             return _repository.GetAllClientUsers().Find(u => u.name == name);

@@ -13,6 +13,7 @@ namespace ATM.UI
         private const string ViewApproved = "View approved loans";
         private const string ViewRejected = "View rejected loans";
         private const string BanUser = "Ban or unban a user";
+        private const string ViewLogs = "View logs";
         private const string LogOut = "Log out";
 
         private readonly ATMServices _services;
@@ -36,7 +37,7 @@ namespace ATM.UI
                 string choice = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .Title("What would you like to do?")
-                        .AddChoices(ViewUsers, SearchUser, ReviewLoans, ViewApproved, ViewRejected, BanUser, LogOut));
+                        .AddChoices(ViewUsers, SearchUser, ReviewLoans, ViewApproved, ViewRejected, BanUser, ViewLogs, LogOut));
                 if (choice == LogOut)
                 {
                     return;
@@ -63,6 +64,9 @@ namespace ATM.UI
                             break;
                         case BanUser:
                             BanOrUnbanUser();
+                            break;
+                        case ViewLogs:
+                            ShowLogs();
                             break;
                     }
                 }
@@ -255,6 +259,36 @@ namespace ATM.UI
                 ConsoleUi.Success($"{user.name} has been unbanned.");
                 ConsoleUi.Info(notification);
             }
+        }
+
+        private void ShowLogs()
+        {
+            List<string> logs = _services.ViewLogs();
+            if (logs.Count == 0)
+            {
+                ConsoleUi.Info("The log is empty.");
+                return;
+            }
+            var table = new Table()
+                .Border(TableBorder.Rounded)
+                .BorderColor(Color.Grey)
+                .Title("Logs (newest first)")
+                .AddColumn("Time")
+                .AddColumn("Event");
+            foreach (string line in logs)
+            {
+                // Entries are written as "[yyyy-MM-dd HH:mm:ss]: message".
+                int separator = line.IndexOf("]: ", StringComparison.Ordinal);
+                if (line.StartsWith('[') && separator > 0)
+                {
+                    table.AddRow(Markup.Escape(line[1..separator]), Markup.Escape(line[(separator + 3)..]));
+                }
+                else
+                {
+                    table.AddRow("[grey]-[/]", Markup.Escape(line));
+                }
+            }
+            AnsiConsole.Write(table);
         }
 
         private static void ShowLoans(string title, List<ClientUser> users, string emptyMessage)
