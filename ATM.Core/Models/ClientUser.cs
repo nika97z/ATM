@@ -1,7 +1,4 @@
 using ATM.Core.Enums;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ATM.Core.Models
 {
@@ -23,6 +20,18 @@ namespace ATM.Core.Models
         public Loans Loan{ get; set; } = new Loans();
 
         public decimal Salary { get; set; }
+
+        public string Email { get; set; } = string.Empty;
+
+        public bool IsBanned { get; set; }
+
+        // After a loan is approved or rejected, updating the salary is what allows a new loan request.
+        public bool SalaryUpdatedSinceLastLoan { get; set; }
+
+        public decimal TotalBalance()
+        {
+            return Accounts.Sum(a => a.Balance);
+        }
 
     }
 }

@@ -1,7 +1,4 @@
 using ATM.Core.Models;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ATM.Core.Interfaces
 {
@@ -15,6 +12,8 @@ namespace ATM.Core.Interfaces
 
         void RegisterAdminUser(AdminUser adminUser);
         void UpdateClientUser(ClientUser updatedClientUser);
+        void DeleteClientUser(ClientUser clientUser);
+        void Log(string message);
 
     }
 }

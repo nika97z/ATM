@@ -1,0 +1,20 @@
+[2026-09-28 19:45:09]: User sss verified email zirakishvili3@gmail.com at 9/28/2026 7:45:09 PM from IP: 192.168.100.6
+[2026-09-28 19:45:09]: User sss registered at 9/28/2026 7:45:09 PM from IP: 192.168.100.6
+[2026-09-28 19:45:49]: User sss added new account GE587830168 at 9/28/2026 7:45:49 PM from IP: 192.168.100.6
+[2026-09-28 19:52:32]: User sss requested a loan of 2222 gel for 43 months at 9/28/2026 7:52:32 PM from IP: 192.168.100.6
+[2026-09-28 19:53:09]: Admin sss registered at 9/28/2026 7:53:09 PM from IP: 192.168.100.6
+[2026-09-28 19:56:28]: Admin sss logged in at 9/28/2026 7:56:28 PM from IP: 192.168.100.6
+[2026-09-28 20:04:44]: Loan rejected for user sss at 9/28/2026 8:04:44 PM from IP: 192.168.100.6
+[2026-09-28 20:04:47]: Loan Rejected email sent to user sss (zirakishvili3@gmail.com) at 9/28/2026 8:04:47 PM from IP: 192.168.100.6
+[2026-09-28 20:05:09]: User sss logged in at 9/28/2026 8:05:09 PM from IP: 192.168.100.6
+[2026-09-28 20:24:38]: Admin sss logged in at 9/28/2026 8:24:38 PM from IP: 192.168.100.6
+[2026-09-28 20:25:45]: User sss logged in at 9/28/2026 8:25:45 PM from IP: 192.168.100.6
+[2026-09-28 20:26:22]: User sss updated monthly salary from 3333 to 4444 gel at 9/28/2026 8:26:22 PM from IP: 192.168.100.6
+[2026-09-28 20:26:39]: User sss requested a loan of 444 gel for 5 months at 9/28/2026 8:26:39 PM from IP: 192.168.100.6
+[2026-09-28 20:27:27]: Admin sss logged in at 9/28/2026 8:27:27 PM from IP: 192.168.100.6
+[2026-09-28 20:28:12]: Loan approved for user sss, amount 444 gel at 9/28/2026 8:28:12 PM from IP: 192.168.100.6
+[2026-09-28 20:28:15]: Loan Approved email sent to user sss (zirakishvili3@gmail.com) at 9/28/2026 8:28:15 PM from IP: 192.168.100.6
+[2026-09-30 19:49:18]: User nika verified email zirakishvili3@gmail.com at 9/30/2026 7:49:18 PM from IP: 192.168.100.5
+[2026-09-30 19:49:18]: User nika registered at 9/30/2026 7:49:18 PM from IP: 192.168.100.5
+[2026-09-30 19:49:57]: Admin nika registered at 9/30/2026 7:49:57 PM from IP: 192.168.100.5
+[2026-09-30 19:50:39]: User nika logged in at 9/30/2026 7:50:39 PM from IP: 192.168.100.5

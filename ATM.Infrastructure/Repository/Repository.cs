@@ -1,12 +1,8 @@
 using ATM.Core.Enums;
 using ATM.Core.Interfaces;
 using ATM.Core.Models;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ATM.Infrastructure.Repository
 {
@@ -14,11 +10,18 @@ namespace ATM.Infrastructure.Repository
     {
         string _path = "C:\\Users\\User\\OneDrive\\Desktop\\ATM\\ATM.Infrastructure\\Data\\Data.txt";
 
-        private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+        private readonly string _logFilePath = "C:\\Users\\User\\OneDrive\\Desktop\\ATM\\ATM.Infrastructure\\Data\\Log.txt";
+
+        private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions()
         {
             NumberHandling = JsonNumberHandling.AllowReadingFromString
         };
 
+        public void Log(string message)
+        {
+            string logMessage = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]: { message}";
+            File.AppendAllText(_logFilePath, logMessage + Environment.NewLine);
+        }
 
 
         public List<User> GetAll()
@@ -104,8 +107,40 @@ namespace ATM.Infrastructure.Repository
                     updatedUsers.Add(user);
                 }
             }
+            var adminUsers = GetAllAdminUsers();
             using (StreamWriter writer = new StreamWriter(_path, false))
             {
+                foreach (var admin in adminUsers)
+                {
+                    var json = JsonSerializer.Serialize(admin);
+                    writer.WriteLine(json);
+                }
+                foreach (var user in updatedUsers)
+                {
+                    var json = JsonSerializer.Serialize(user);
+                    writer.WriteLine(json);
+                }
+            }
+        }
+        public void DeleteClientUser(ClientUser clientUser)
+        {
+            var allUsers = GetAllClientUsers();
+            var updatedUsers = new List<ClientUser>();
+            foreach (var user in allUsers)
+            {
+                if (user.id != clientUser.id)
+                {
+                    updatedUsers.Add(user);
+                }
+            }
+            var adminUsers = GetAllAdminUsers();
+            using (StreamWriter writer = new StreamWriter(_path, false))
+            {
+                foreach (var admin in adminUsers)
+                {
+                    var json = JsonSerializer.Serialize(admin);
+                    writer.WriteLine(json);
+                }
                 foreach (var user in updatedUsers)
                 {
                     var json = JsonSerializer.Serialize(user);

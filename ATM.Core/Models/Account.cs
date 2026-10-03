@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace ATM.Core.Models
 {
     public class Account
@@ -10,12 +6,14 @@ namespace ATM.Core.Models
         {
         }
 
-        public Account(int accountNumber, decimal balance)
+        public Account(string accountNumber, decimal balance)
         {
             AccountNumber = accountNumber;
             Balance = balance;
         }
-        public int AccountNumber { get; set; }
+
+        // Always GE followed by 9 digits, for example GE123456789.
+        public string AccountNumber { get; set; } = string.Empty;
 
         private decimal _money;
 
